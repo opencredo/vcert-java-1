@@ -1,7 +1,7 @@
 package com.venafi.vcert.sdk.certificate;
 
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 
 public enum KeyType {
     RSA, ECDSA;
@@ -16,7 +16,7 @@ public enum KeyType {
         }
     }
 
-    public static Collection<Integer> allSupportedKeySizes() {
+    public static List<Integer> allSupportedKeySizes() {
         return Arrays.asList(512, 1024, 2048, 4096, 8192);
     }
 

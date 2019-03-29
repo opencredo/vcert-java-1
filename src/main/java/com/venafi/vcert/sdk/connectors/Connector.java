@@ -14,6 +14,13 @@ public interface Connector {
 //    void register(String eMail) throws VCertException;
     void authenticate(Authentication auth) throws VCertException;
     ZoneConfiguration readZoneConfiguration(String zone) throws VCertException;
+
+    /**
+     * GenerateRequest creates a new certificate request, based on the zone/policy configuration and the user data
+     * @param config
+     * @return
+     * @throws VCertException
+     */
     CertificateRequest generateRequest(ZoneConfiguration config, CertificateRequest request) throws VCertException;
 //    String requestCertificate(CertificateRequest request, String zone) throws VCertException;
 //    Collection retrieveCertificate(CertificateRequest request) throws VCertException;

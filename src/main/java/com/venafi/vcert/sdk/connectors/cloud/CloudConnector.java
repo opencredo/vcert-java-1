@@ -20,12 +20,15 @@ public class CloudConnector implements Connector {
     @Getter
     private UserDetails user;
     private Authentication auth;
-
-    @Getter
     private String zone;
 
     CloudConnector(Cloud cloud) {
         this.cloud = cloud;
+    }
+
+    @Override
+    public void setZone(String zone) {
+        this.zone = zone;
     }
 
     @Override
@@ -93,9 +96,5 @@ public class CloudConnector implements Connector {
     private Zone getZoneByTag(String zone) throws VCertException {
         VCertException.throwIfNull(user, "must be authenticated to read the zone configuration");
         return cloud.zoneByTag(zone, auth.apiKey());
-    }
-
-    public void setZone(String zone) {
-        this.zone = zone;
     }
 }

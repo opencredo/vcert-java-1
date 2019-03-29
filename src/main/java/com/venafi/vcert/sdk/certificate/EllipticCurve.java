@@ -3,8 +3,8 @@ package com.venafi.vcert.sdk.certificate;
 import lombok.Getter;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public enum EllipticCurve {
@@ -36,7 +36,7 @@ public enum EllipticCurve {
         return EllipticCurveP521;
     }
 
-    public static Collection<EllipticCurve> allSupportedCures() {
+    public static List<EllipticCurve> allSupportedCures() {
         return Arrays.asList(EllipticCurve.values());
     }
 }

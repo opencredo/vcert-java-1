@@ -28,13 +28,18 @@ public class TppConnector implements Connector {
     @VisibleForTesting
     OffsetDateTime bestBeforeEnd;
 
+    @Getter
+    private String zone;
+    private static final String tppAttributeManagementType = "Management Type";
+    private static final String tppAttributeManualCSR = "Manual Csr";
+
     TppConnector(Tpp tpp) {
         this.tpp = tpp;
     }
 
     @Override
     public void setZone(String zone) {
-
+        this.zone = zone;
     }
 
     public void authenticate(Authentication auth) throws VCertException {
@@ -58,6 +63,27 @@ public class TppConnector implements Connector {
 
     @Override
     public CertificateRequest generateRequest(ZoneConfiguration config, CertificateRequest request) throws VCertException {
+        if(config == null) {
+            config = readZoneConfiguration(zone);
+        }
+        String tppMgmtType = config.customAttributeValues().get(tppAttributeManagementType);
+        if("Monitoring".equals(tppMgmtType) || "Unassigned".equals(tppMgmtType)) {
+            throw new VCertException("Unable to request certificate from TPP, current TPP configuration would not allow the request to be processed");
+        }
+
+        config.updateCertificateRequest(request);
+
+        switch (request.csrOrigin()) {
+            case LocalGeneratedCSR: {
+                if("0".equals(config.customAttributeValues().get(tppAttributeManualCSR))) {
+                    throw new VCertException("Unable to request certificate by local generated CSR when zone configuration is 'Manual Csr' = 0");
+                }
+                request.generatePrivateKey();
+
+            }
+        }
+
+
         return null;
     }
 
