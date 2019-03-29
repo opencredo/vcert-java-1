@@ -1,22 +1,15 @@
 package com.venafi.vcert.sdk.connectors.cloud;
 
-import com.google.common.collect.Lists;
 import com.venafi.vcert.sdk.VCertException;
 import com.venafi.vcert.sdk.connectors.Connector;
 import com.venafi.vcert.sdk.connectors.cloud.domain.UserAccount;
 import com.venafi.vcert.sdk.connectors.cloud.domain.UserDetails;
 import com.venafi.vcert.sdk.connectors.tpp.ZoneConfiguration;
 import com.venafi.vcert.sdk.endpoint.Authentication;
-import lombok.Data;
 import lombok.Getter;
-import org.eclipse.jetty.webapp.Ordering;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static java.util.Collections.singletonList;
 
 
 public class CloudConnector implements Connector {
