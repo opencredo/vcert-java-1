@@ -1,6 +1,7 @@
 package com.venafi.vcert.sdk.connectors.cloud;
 
 import com.venafi.vcert.sdk.VCertException;
+import com.venafi.vcert.sdk.certificate.CertificateRequest;
 import com.venafi.vcert.sdk.connectors.Connector;
 import com.venafi.vcert.sdk.connectors.cloud.domain.UserDetails;
 import com.venafi.vcert.sdk.connectors.tpp.ZoneConfiguration;
@@ -18,9 +19,15 @@ public class CloudConnector implements Connector {
     @Getter
     private UserDetails user;
     private Authentication auth;
+    private String zone;
 
     CloudConnector(Cloud cloud) {
         this.cloud = cloud;
+    }
+
+    @Override
+    public void setZone(String zone) {
+        this.zone = zone;
     }
 
     @Override
@@ -36,6 +43,11 @@ public class CloudConnector implements Connector {
         Zone zone = getZoneByTag(tag);
         CertificatePolicy policy = getPoliciesById(Arrays.asList(zone.defaultCertificateIdentityPolicy(), zone.defaultCertificateUsePolicy()));
         return zone.getZoneConfiguration(user, policy);
+    }
+
+    @Override
+    public CertificateRequest generateRequest(ZoneConfiguration config, CertificateRequest request) throws VCertException {
+        throw new UnsupportedOperationException(); // see Patrick
     }
 
     private CertificatePolicy getPoliciesById(Collection<String> ids) throws VCertException {
