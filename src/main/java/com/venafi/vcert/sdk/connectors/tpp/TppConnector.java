@@ -7,6 +7,7 @@ import com.venafi.vcert.sdk.connectors.Connector;
 import com.venafi.vcert.sdk.connectors.Policy;
 import com.venafi.vcert.sdk.connectors.ServerPolicy;
 import com.venafi.vcert.sdk.endpoint.Authentication;
+import com.venafi.vcert.sdk.utils.Is;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -75,11 +76,25 @@ public class TppConnector implements Connector {
 
         switch (request.csrOrigin()) {
             case LocalGeneratedCSR: {
-                if("0".equals(config.customAttributeValues().get(tppAttributeManualCSR))) {
+                if ("0".equals(config.customAttributeValues().get(tppAttributeManualCSR))) {
                     throw new VCertException("Unable to request certificate by local generated CSR when zone configuration is 'Manual Csr' = 0");
                 }
                 request.generatePrivateKey();
-
+                request.generateCSR();
+                break;
+            }
+            case UserProvidedCSR: {
+                if("0".equals(config.customAttributeValues().get(tppAttributeManualCSR))) {
+                    throw new VCertException("Unable to request certificate with user provided CSR when zone configuration is 'Manual Csr' = 0");
+                }
+                if(Is.blank(request.csr())) {
+                    throw new VCertException("CSR was supposed to be provided by user, but it's empty");
+                }
+                break;
+            }
+            case ServiceGeneratedCSR: {
+                request.csr(null);
+                break;
             }
         }
 
