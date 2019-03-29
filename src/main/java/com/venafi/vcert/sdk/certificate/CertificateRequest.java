@@ -21,7 +21,7 @@ public class CertificateRequest {
     private KeyType keyType;
     private Integer keyLength;
     private EllipticCurve keyCurve;
-    private Collection<Byte> csr; // Todo revist
+    private Collection<Byte> csr; // Todo revisit
     private PrivateKey privateKey;
     private CsrOriginOption csrOrigin;
     private String pickupId;
@@ -32,16 +32,16 @@ public class CertificateRequest {
     private Duration timeout;
 
     @Data
-    private static class PKIXName {
-        private Collection<String> Country;
-        private Collection<String> Organization;
-        private Collection<String> OrganizationalUnit;
-        private Collection<String> Locality;
-        private Collection<String> Province;
-        private Collection<String> StreetAddress;
-        private Collection<String> PostalCode;
-        private String SerialNumber;
-        private String CommonName;
+    public static class PKIXName {
+        private Collection<String> country;
+        private Collection<String> organization;
+        private Collection<String> organizationalUnit;
+        private Collection<String> locality;
+        private Collection<String> province;
+        private Collection<String> streetAddress;
+        private Collection<String> postalCode;
+        private String serialNumber;
+        private String commonName;
 
         private Collection<AttributeTypeAndValue> names;
         private Collection<AttributeTypeAndValue> extraNames;

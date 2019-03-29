@@ -1,6 +1,7 @@
 package com.venafi.vcert.sdk.connectors.cloud;
 
 import com.venafi.vcert.sdk.VCertException;
+import com.venafi.vcert.sdk.certificate.CertificateRequest;
 import com.venafi.vcert.sdk.connectors.Connector;
 import com.venafi.vcert.sdk.connectors.cloud.domain.UserDetails;
 import com.venafi.vcert.sdk.connectors.tpp.ZoneConfiguration;
@@ -10,6 +11,7 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static java.lang.String.format;
 
 public class CloudConnector implements Connector {
 
@@ -18,6 +20,9 @@ public class CloudConnector implements Connector {
     @Getter
     private UserDetails user;
     private Authentication auth;
+
+    @Getter
+    private String zone;
 
     CloudConnector(Cloud cloud) {
         this.cloud = cloud;
@@ -36,6 +41,26 @@ public class CloudConnector implements Connector {
         Zone zone = getZoneByTag(tag);
         CertificatePolicy policy = getPoliciesById(Arrays.asList(zone.defaultCertificateIdentityPolicy(), zone.defaultCertificateUsePolicy()));
         return zone.getZoneConfiguration(user, policy);
+    }
+
+    @Override
+    public CertificateRequest generateRequest(ZoneConfiguration config, CertificateRequest request) throws VCertException {
+        switch(request.csrOrigin()) {
+            case LocalGeneratedCSR:
+                if(config == null) {
+                    config = readZoneConfiguration(zone);
+                }
+                config.validateCertificateRequest(request);
+                break;
+            case UserProvidedCSR:
+                break;
+            case ServiceGeneratedCSR:
+                break;
+            default:
+                throw new VCertException(format("Unreconginised request CSR origin %s", request.csrOrigin()));
+        }
+
+        return request;
     }
 
     private CertificatePolicy getPoliciesById(Collection<String> ids) throws VCertException {
@@ -59,7 +84,7 @@ public class CloudConnector implements Connector {
                     policy.keyReuse(certificatePolicy.keyReuse());
                     break;
                 }
-                default: throw new IllegalArgumentException(String.format("unknown type %s", certificatePolicy.certificatePolicyType()));
+                default: throw new IllegalArgumentException(format("unknown type %s", certificatePolicy.certificatePolicyType()));
             }
         }
         return policy;
@@ -68,5 +93,9 @@ public class CloudConnector implements Connector {
     private Zone getZoneByTag(String zone) throws VCertException {
         VCertException.throwIfNull(user, "must be authenticated to read the zone configuration");
         return cloud.zoneByTag(zone, auth.apiKey());
+    }
+
+    public void setZone(String zone) {
+        this.zone = zone;
     }
 }

@@ -2,6 +2,7 @@ package com.venafi.vcert.sdk.connectors.tpp;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.venafi.vcert.sdk.VCertException;
+import com.venafi.vcert.sdk.certificate.CertificateRequest;
 import com.venafi.vcert.sdk.connectors.Connector;
 import com.venafi.vcert.sdk.connectors.Policy;
 import com.venafi.vcert.sdk.connectors.ServerPolicy;
@@ -31,6 +32,11 @@ public class TppConnector implements Connector {
         this.tpp = tpp;
     }
 
+    @Override
+    public void setZone(String zone) {
+
+    }
+
     public void authenticate(Authentication auth) throws VCertException {
         VCertException.throwIfNull(auth, "failed to authenticate: missing credentials");
         AuthorizeResponse response = tpp.authorize(new AuthorizeRequest(auth.user(), auth.password()));
@@ -48,6 +54,11 @@ public class TppConnector implements Connector {
         ZoneConfiguration zoneConfig = serverPolicy.toZoneConfig();
         zoneConfig.policy(policy);
         return zoneConfig;
+    }
+
+    @Override
+    public CertificateRequest generateRequest(ZoneConfiguration config, CertificateRequest request) throws VCertException {
+        return null;
     }
 
     private String getPolicyDN(final String zone) {

@@ -70,10 +70,10 @@ class TppConnectorIT {
         assertThat(zoneConfiguration.policy().allowedKeyConfigurations()).isNotNull();
         assertThat(zoneConfiguration.policy().allowedKeyConfigurations()).isNotNull();
         assertThat(zoneConfiguration.policy().allowedKeyConfigurations()).hasSize(2);//
-        assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(0).keytype()).isEqualTo(RSA);
+        assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(0).keyType()).isEqualTo(RSA);
         assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(0).keySizes()).containsExactly(512, 1024, 2048, 4096, 8192);
         assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(0).keyCurves()).isNull();
-        assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(1).keytype()).isEqualTo(ECDSA);
+        assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(1).keyType()).isEqualTo(ECDSA);
         assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(1).keySizes()).isNull();
         assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(1).keyCurves()).containsExactly(EllipticCurveP521, EllipticCurveP384, EllipticCurveP256, EllipticCurveP224);
         assertThat(zoneConfiguration.policy().dnsSanRegExs()).containsExactly(".*");

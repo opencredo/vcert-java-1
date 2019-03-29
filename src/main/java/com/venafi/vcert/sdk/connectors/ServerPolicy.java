@@ -110,7 +110,7 @@ public class ServerPolicy {
 
         if(keyPair.keyAlgorithm().locked()) {
             KeyType keyType = KeyType.set(keyPair.keyAlgorithm().value());
-            AllowedKeyConfiguration key = new AllowedKeyConfiguration().keytype(keyType).keySizes(Collections.emptyList());
+            AllowedKeyConfiguration key = new AllowedKeyConfiguration().keyType(keyType).keySizes(Collections.emptyList());
             if(KeyType.RSA.equals(keyType)) {
                 if(keyPair.keySize().locked()) {
                     for(Integer keySize : KeyType.allSupportedKeySizes()) {
@@ -131,8 +131,8 @@ public class ServerPolicy {
             }
             policy.allowedKeyConfigurations().add(key);
         } else {
-            policy.allowedKeyConfigurations().add(new AllowedKeyConfiguration().keytype(KeyType.RSA).keySizes(KeyType.allSupportedKeySizes()));
-            policy.allowedKeyConfigurations().add(new AllowedKeyConfiguration().keytype(KeyType.ECDSA).keyCurves(EllipticCurve.allSupportedCures()));
+            policy.allowedKeyConfigurations().add(new AllowedKeyConfiguration().keyType(KeyType.RSA).keySizes(KeyType.allSupportedKeySizes()));
+            policy.allowedKeyConfigurations().add(new AllowedKeyConfiguration().keyType(KeyType.ECDSA).keyCurves(EllipticCurve.allSupportedCures()));
         }
         policy.allowWildcards(wildcardsAllowed);
         policy.allowKeyReuse(privateKeyReuseAllowed);

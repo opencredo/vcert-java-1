@@ -8,7 +8,7 @@ import java.util.Collection;
 
 @Data
 public class AllowedKeyConfiguration {
-    private KeyType keytype;
+    private KeyType keyType;
     private Collection<Integer> keySizes;
     private Collection<EllipticCurve> keyCurves;
 }

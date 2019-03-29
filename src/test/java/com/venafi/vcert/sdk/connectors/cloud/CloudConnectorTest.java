@@ -35,4 +35,8 @@ class CloudConnectorTest {
         assertEquals(response, classUnderTest.user());
     }
 
+//    @Test
+//    void generateRequest() {
+//        classUnderTest.generateRequest()
+//    }
 }
