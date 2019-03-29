@@ -31,6 +31,7 @@ public class TppConnector implements Connector {
     @Getter
     private String zone;
     private static final String tppAttributeManagementType = "Management Type";
+    private static final String tppAttributeManualCSR = "Manual Csr";
 
     TppConnector(Tpp tpp) {
         this.tpp = tpp;
@@ -66,6 +67,16 @@ public class TppConnector implements Connector {
         }
 
         config.updateCertificateRequest(request);
+
+        switch (request.csrOrigin()) {
+            case LocalGeneratedCSR: {
+                if("0".equals(config.customAttributeValues().get(tppAttributeManualCSR))) {
+                    throw new VCertException("Unable to request certificate by local generated CSR when zone configuration is 'Manual Csr' = 0");
+                }
+                request.generatePrivateKey();
+
+            }
+        }
 
 
         return null;

@@ -1,6 +1,7 @@
 package com.venafi.vcert.sdk.certificate;
 
 import com.venafi.vcert.sdk.SignatureAlgorithm;
+import com.venafi.vcert.sdk.VCertException;
 import lombok.Data;
 
 import java.net.InetAddress;
@@ -31,6 +32,26 @@ public class CertificateRequest {
     private Boolean fetchPrivateKey;
     private String thumbprint;
     private Duration timeout;
+
+    public void generatePrivateKey() throws VCertException {
+        if(privateKey != null) {
+            return;
+        }
+        switch (keyType) {
+            case ECDSA: {
+                privateKey = generateECDSAPrivateKey(keyCurve);
+                break;
+            }
+            case RSA: {
+                if(keyLength == 0) {
+                    keyLength = KeyType.defaultRsaLength();
+                    break;
+                }
+                privateKey = generateRSAPrivateKey(keyLength);
+            }
+            default: throw new VCertException(String.format("Unable to generate certificate request, key type %s is not supported", keyType.name()));
+        }
+    }
 
     @Data
     public static class PKIXName {
