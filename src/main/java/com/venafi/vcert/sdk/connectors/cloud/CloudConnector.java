@@ -54,6 +54,9 @@ public class CloudConnector implements Connector {
                     config = readZoneConfiguration(zone);
                 }
                 config.validateCertificateRequest(request);
+                config.updateCertificateRequest(request);
+                request.generatePrivateKey();
+                request.generateCSR();
                 break;
             case UserProvidedCSR:
                 break;

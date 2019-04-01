@@ -1,5 +1,7 @@
 package com.venafi.vcert.sdk;
 
+import lombok.Getter;
+
 public enum SignatureAlgorithm {
 
     UnknownSignatureAlgorithm(""),
@@ -28,5 +30,6 @@ public enum SignatureAlgorithm {
         this.standardName = standardName;
     }
 
+    @Getter
     private String standardName;
 }

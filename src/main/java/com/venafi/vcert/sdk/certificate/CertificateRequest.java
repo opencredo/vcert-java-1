@@ -3,33 +3,39 @@ package com.venafi.vcert.sdk.certificate;
 import com.venafi.vcert.sdk.SignatureAlgorithm;
 import com.venafi.vcert.sdk.VCertException;
 import lombok.Data;
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
-import org.bouncycastle.jce.spec.ECNamedCurveSpec;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.jce.PKCS10CertificationRequest;
+import org.bouncycastle.util.io.pem.PemWriter;
+import sun.misc.BASE64Encoder;
+import sun.security.provider.X509Factory;
 
-import java.math.BigInteger;
+import javax.security.auth.x500.X500Principal;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
 import java.net.InetAddress;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 @Data
 public class CertificateRequest {
-    private PKIXName subject;
+    private PKIXName subject; // TODO change to X500Name
     private Collection<String> dnsNames;
     private Collection<String> emailAddresses;
     private Collection<InetAddress> ipAddresses;
     private Collection<AttributeTypeAndValueSET> attributes;
-    private SignatureAlgorithm signatureAlgorithm;
-    private PublicKeyAlgorithm publicKeyAlgorithm;
+    private SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.UnknownSignatureAlgorithm;
+    private PublicKeyAlgorithm publicKeyAlgorithm = PublicKeyAlgorithm.Unknown;
     private String friendlyName;
     private KeyType keyType;
-    private Integer keyLength;
+    private int keyLength;
     private EllipticCurve keyCurve;
-    private Collection<Byte> csr; // Todo revisit
-    private PrivateKey privateKey;
+    private byte[] csr;
+    private KeyPair keyPair;
     private CsrOriginOption csrOrigin;
     private String pickupId;
     private ChainOption chainOption;
@@ -39,34 +45,56 @@ public class CertificateRequest {
     private Duration timeout;
 
     public void generatePrivateKey() throws VCertException {
-        if(privateKey != null) {
+        if(keyPair != null) {
             return;
         }
-        switch (keyType) {
+        switch(keyType) {
             case ECDSA: {
-                privateKey = generateECDSAPrivateKey(keyCurve);
+                keyPair = generateECDSAKeyPair(keyCurve);
                 break;
             }
             case RSA: {
                 if(keyLength == 0) {
                     keyLength = KeyType.defaultRsaLength();
-                    break;
                 }
-                privateKey = generateRSAPrivateKey(keyLength);
+                keyPair = generateRSAKeyPair(keyLength);
+                break;
             }
-            default: throw new VCertException(String.format("Unable to generate certificate request, key type %s is not supported", keyType.name()));
+            default:
+                throw new VCertException(String.format("Unable to generate certificate request, key type %s is not supported", keyType.name()));
         }
     }
 
-    private PrivateKey generateECDSAPrivateKey(EllipticCurve keyCurve) throws VCertException {
+    public void generateCSR() throws VCertException {
+        try {
+            PKCS10CertificationRequest certificationRequest = new PKCS10CertificationRequest(
+                    signatureAlgorithm.standardName(),
+                    subject.toX500Principal(),
+                    keyPair.getPublic(),
+                    null,
+                    keyPair.getPrivate());
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            BASE64Encoder base64Encoder = new BASE64Encoder();
+            outputStream.write("-----BEGIN CERTIFICATE REQUEST-----".getBytes());
+            outputStream.write(System.lineSeparator().getBytes());
+            base64Encoder.encodeBuffer(certificationRequest.getEncoded(), outputStream);
+            outputStream.write("-----END CERTIFICATE REQUEST-----".getBytes());
+            csr = outputStream.toByteArray();
+        } catch(Exception e) {
+            throw new VCertException("Unable to generate CSR", e);
+        }
+    }
+
+    private KeyPair generateECDSAKeyPair(EllipticCurve keyCurve) throws VCertException {
         throw new UnsupportedOperationException("Yet to implement key generation based on elliptic curves");
     }
 
-    private PrivateKey generateRSAPrivateKey(Integer keyLength) throws VCertException {
+    private KeyPair generateRSAKeyPair(Integer keyLength) throws VCertException {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(keyLength);
-            return keyPairGenerator.generateKeyPair().getPrivate();
+            return keyPairGenerator.generateKeyPair();
         } catch(NoSuchAlgorithmException e) {
             throw new VCertException("No security provider found for KeyFactory.RSA", e);
         }
@@ -86,6 +114,10 @@ public class CertificateRequest {
 
         private Collection<AttributeTypeAndValue> names;
         private Collection<AttributeTypeAndValue> extraNames;
+
+        public X500Principal toX500Principal() {
+            return new X500Principal("CN=Fred");
+        }
     }
 
     // Todo do we need this?

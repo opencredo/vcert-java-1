@@ -111,7 +111,7 @@ public class ZoneConfiguration {
             }
         } else {
             // Zone config has no key length parameters, so we just pass user's -key-size or fall to default 2048
-            if(KeyType.RSA.equals(request.keyType()) && (request.keyLength() == null || request.keyLength().equals(0))) {
+            if(KeyType.RSA.equals(request.keyType()) && request.keyLength() == 0) {
                 request.keyLength(2048);
             }
         }
