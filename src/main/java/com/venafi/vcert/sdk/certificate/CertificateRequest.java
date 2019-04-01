@@ -4,15 +4,14 @@ import com.venafi.vcert.sdk.SignatureAlgorithm;
 import com.venafi.vcert.sdk.VCertException;
 import lombok.Data;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
-import org.bouncycastle.util.io.pem.PemWriter;
+import org.bouncycastle.jce.X509Principal;
 import sun.misc.BASE64Encoder;
-import sun.security.provider.X509Factory;
 
 import javax.security.auth.x500.X500Principal;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStreamWriter;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -20,6 +19,8 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+
+import static java.lang.String.format;
 
 @Data
 public class CertificateRequest {
@@ -61,7 +62,7 @@ public class CertificateRequest {
                 break;
             }
             default:
-                throw new VCertException(String.format("Unable to generate certificate request, key type %s is not supported", keyType.name()));
+                throw new VCertException(format("Unable to generate certificate request, key type %s is not supported", keyType.name()));
         }
     }
 
@@ -102,6 +103,8 @@ public class CertificateRequest {
 
     @Data
     public static class PKIXName {
+        private String commonName;
+        private String serialNumber;
         private List<String> country;
         private List<String> organization;
         private List<String> organizationalUnit;
@@ -109,14 +112,17 @@ public class CertificateRequest {
         private List<String> province;
         private List<String> streetAddress;
         private List<String> postalCode;
-        private String serialNumber;
-        private String commonName;
 
         private Collection<AttributeTypeAndValue> names;
         private Collection<AttributeTypeAndValue> extraNames;
 
         public X500Principal toX500Principal() {
-            return new X500Principal("CN=Fred");
+            X500NameBuilder x500NameBuilder = new X500NameBuilder();
+            x500NameBuilder.addRDN(BCStyle.CN, commonName);
+            for(String org : organization) {
+                x500NameBuilder.addRDN(BCStyle.O, org);
+            }
+            return new X500Principal(x500NameBuilder.build().toString());
         }
     }
 

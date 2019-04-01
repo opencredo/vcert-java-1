@@ -2,12 +2,18 @@ package com.venafi.vcert.sdk.certificate;
 
 import com.venafi.vcert.sdk.SignatureAlgorithm;
 import com.venafi.vcert.sdk.VCertException;
+import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.junit.jupiter.api.Test;
 import sun.misc.BASE64Decoder;
 import sun.security.x509.X509CertImpl;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -20,6 +26,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 class CertificateRequestTest {
@@ -53,6 +61,14 @@ class CertificateRequestTest {
 
         certificateRequest.generatePrivateKey();
         certificateRequest.generateCSR();
+
+        PKCS10CertificationRequest cert = null;
+        StringReader reader = new StringReader(new String(certificateRequest.csr()));
+        PEMParser pemParser = new PEMParser(reader);
+        cert = (PKCS10CertificationRequest)pemParser.readObject();
+        pemParser.close();
+
+        assertThat(cert.getSubject().toString()).isEqualTo("O=Venafi\\, Inc.,CN=vcert.test.vfidev.com");
     }
 
     @Test
