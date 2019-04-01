@@ -2,16 +2,16 @@ package com.venafi.vcert.sdk.certificate;
 
 import com.venafi.vcert.sdk.SignatureAlgorithm;
 import com.venafi.vcert.sdk.VCertException;
+import com.venafi.vcert.sdk.utils.Is;
 import lombok.Data;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
-import org.bouncycastle.jce.X509Principal;
 import sun.misc.BASE64Encoder;
 
 import javax.security.auth.x500.X500Principal;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -19,6 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import static java.lang.String.format;
 
@@ -103,6 +104,13 @@ public class CertificateRequest {
 
     @Data
     public static class PKIXName {
+
+        private static void addAll(X500NameBuilder builder, ASN1ObjectIdentifier identifier, Collection<String> values) {
+            if(values != null) {
+                values.stream().filter(Objects::nonNull).forEach(value -> builder.addRDN(identifier, value));
+            }
+        }
+
         private String commonName;
         private String serialNumber;
         private List<String> country;
@@ -116,12 +124,22 @@ public class CertificateRequest {
         private Collection<AttributeTypeAndValue> names;
         private Collection<AttributeTypeAndValue> extraNames;
 
-        public X500Principal toX500Principal() {
+        public X500Principal toX500Principal() throws VCertException {
+            if(Is.blank(commonName)) {
+                throw new VCertException("common nae must not be null or emtpy");
+            }
             X500NameBuilder x500NameBuilder = new X500NameBuilder();
             x500NameBuilder.addRDN(BCStyle.CN, commonName);
-            for(String org : organization) {
-                x500NameBuilder.addRDN(BCStyle.O, org);
-            }
+            addAll(x500NameBuilder, BCStyle.C, country);
+            addAll(x500NameBuilder, BCStyle.O, organization);
+            addAll(x500NameBuilder, BCStyle.OU, organizationalUnit);
+            addAll(x500NameBuilder, BCStyle.L, locality);
+            addAll(x500NameBuilder, BCStyle.ST, province);
+            addAll(x500NameBuilder, BCStyle.STREET, streetAddress);
+            addAll(x500NameBuilder, BCStyle.POSTAL_CODE, postalCode);
+
+            // todo: serialNumber, names, extraNames
+
             return new X500Principal(x500NameBuilder.build().toString());
         }
     }
