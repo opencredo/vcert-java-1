@@ -167,7 +167,7 @@ public class ZoneConfiguration {
         if(!isComponentValid(policy.dnsSanRegExs(), request.dnsNames())) {
             throw new VCertException("The requested Subject Alternative Name does not match any of the allowed Country regular expressions");
         }
-        //todo: add ip, email and over cheking
+        //todo (from Go SDK): add ip, email and over cheking
 
         List<AllowedKeyConfiguration> allowedKeyConfigurations = policy.allowedKeyConfigurations();
         if(allowedKeyConfigurations != null && allowedKeyConfigurations.size() > 0) {
@@ -206,7 +206,7 @@ public class ZoneConfiguration {
             for(String component : components) {
                 Matcher m = pattern.matcher(component);
                 if(m.matches()) {
-                    return true;
+                    return true; // todo: that seems wrong. Check if all policy rules need to be matched, or any one? (E.g.: Policy says location is [0]:Madrid,[1]:London -  does it need to match either or both?) Also, if we have locations 0:London, 1: Brussels, 2: Madrid, won't this pass? Should it?
                 }
             }
         }

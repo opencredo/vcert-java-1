@@ -213,7 +213,7 @@ public class CloudConnector implements Connector {
     }
 
     @Data
-    private static class CertificateRequestsResponseData {
+    static class CertificateRequestsResponseData {
         private String id;
         private String zoneId;
         private String status;
