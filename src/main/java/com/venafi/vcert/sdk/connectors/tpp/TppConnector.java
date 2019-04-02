@@ -60,11 +60,6 @@ public class TppConnector implements Connector {
         throw new UnsupportedOperationException("Method not yet implemented");
     }
 
-    @Override
-    public void register(String eMail) throws VCertException {
-        throw new UnsupportedOperationException("Method not yet implemented");
-    }
-
     public void authenticate(Authentication auth) throws VCertException {
         VCertException.throwIfNull(auth, "failed to authenticate: missing credentials");
         AuthorizeResponse response = tpp.authorize(new AuthorizeRequest(auth.user(), auth.password()));
@@ -82,6 +77,11 @@ public class TppConnector implements Connector {
         ZoneConfiguration zoneConfig = serverPolicy.toZoneConfig();
         zoneConfig.policy(policy);
         return zoneConfig;
+    }
+
+    /** Register does nothing for TTP */
+    @Override
+    public void register(String eMail) throws VCertException {
     }
 
     @Override

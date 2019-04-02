@@ -4,6 +4,7 @@ import com.venafi.vcert.sdk.VCertException;
 import com.venafi.vcert.sdk.certificate.*;
 import com.venafi.vcert.sdk.connectors.Connector;
 import com.venafi.vcert.sdk.connectors.Policy;
+import com.venafi.vcert.sdk.connectors.cloud.domain.UserAccount;
 import com.venafi.vcert.sdk.connectors.cloud.domain.UserDetails;
 import com.venafi.vcert.sdk.connectors.tpp.ZoneConfiguration;
 import com.venafi.vcert.sdk.endpoint.Authentication;
@@ -50,11 +51,6 @@ public class CloudConnector implements Connector {
     }
 
     @Override
-    public void register(String eMail) throws VCertException {
-        throw new UnsupportedOperationException("Method not yet implemented");
-    }
-
-    @Override
     public void authenticate(Authentication auth) throws VCertException {
         VCertException.throwIfNull(auth, "failed to authenticate: missing credentials");
         this.auth = auth;
@@ -67,6 +63,11 @@ public class CloudConnector implements Connector {
         Zone zone = getZoneByTag(tag);
         CertificatePolicy policy = getPoliciesById(Arrays.asList(zone.defaultCertificateIdentityPolicy(), zone.defaultCertificateUsePolicy()));
         return zone.getZoneConfiguration(user, policy);
+    }
+
+    @Override
+    public void register(String eMail) throws VCertException {
+        this.user = cloud.register(auth.apiKey(), new UserAccount(eMail, "API"));
     }
 
     @Override
@@ -152,5 +153,17 @@ public class CloudConnector implements Connector {
     private Zone getZoneByTag(String zone) throws VCertException {
         VCertException.throwIfNull(user, "must be authenticated to read the zone configuration");
         return cloud.zoneByTag(zone, auth.apiKey());
+    }
+
+    private Cloud.CertificateSearchResponse searchCertificates(Cloud.SearchRequest searchRequest) {
+        return cloud.searchCertificates(auth.apiKey(), searchRequest);
+    }
+
+    private Cloud.CertificateSearchResponse searchCertificatesByFingerprint(String fingerprint) {
+        String cleanFingerprint = fingerprint
+                .replaceAll(":", "")
+                .replaceAll("/.", "");
+
+        return searchCertificates(Cloud.SearchRequest.findByFingerPrint(cleanFingerprint));
     }
 }
