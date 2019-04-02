@@ -11,10 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static com.venafi.vcert.sdk.SignatureAlgorithm.MD2withRSA;
-import static com.venafi.vcert.sdk.certificate.EllipticCurve.EllipticCurveP224;
-import static com.venafi.vcert.sdk.certificate.EllipticCurve.EllipticCurveP256;
-import static com.venafi.vcert.sdk.certificate.EllipticCurve.EllipticCurveP384;
-import static com.venafi.vcert.sdk.certificate.EllipticCurve.EllipticCurveP521;
+import static com.venafi.vcert.sdk.certificate.EllipticCurve.*;
 import static com.venafi.vcert.sdk.certificate.KeyType.ECDSA;
 import static com.venafi.vcert.sdk.certificate.KeyType.RSA;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,7 +72,7 @@ class TppConnectorIT {
         assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(0).keyCurves()).isNull();
         assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(1).keyType()).isEqualTo(ECDSA);
         assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(1).keySizes()).isNull();
-        assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(1).keyCurves()).containsExactly(EllipticCurveP521, EllipticCurveP384, EllipticCurveP256, EllipticCurveP224);
+        assertThat(zoneConfiguration.policy().allowedKeyConfigurations().get(1).keyCurves()).containsExactly(EllipticCurveP224, EllipticCurveP256, EllipticCurveP384, EllipticCurveP521);
         assertThat(zoneConfiguration.policy().dnsSanRegExs()).containsExactly(".*");
         assertThat(zoneConfiguration.policy().ipSanRegExs()).containsExactly(".*");
         assertThat(zoneConfiguration.policy().emailSanRegExs()).containsExactly(".*");
