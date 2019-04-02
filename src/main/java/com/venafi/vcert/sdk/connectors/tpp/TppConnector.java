@@ -87,6 +87,7 @@ public class TppConnector implements Connector {
                 if("0".equals(config.customAttributeValues().get(tppAttributeManualCSR))) {
                     throw new VCertException("Unable to request certificate with user provided CSR when zone configuration is 'Manual Csr' = 0");
                 }
+                request.generatePrivateKey();
                 if(Is.blank(request.csr())) {
                     throw new VCertException("CSR was supposed to be provided by user, but it's empty");
                 }
@@ -97,9 +98,7 @@ public class TppConnector implements Connector {
                 break;
             }
         }
-
-
-        return null;
+        return request;
     }
 
     private String getPolicyDN(final String zone) {

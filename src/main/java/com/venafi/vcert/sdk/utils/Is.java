@@ -8,6 +8,10 @@ public class Is {
         return collection == null || collection.isEmpty();
     }
 
+    public static boolean blank(byte[] array) {
+        return array == null || array.length == 0;
+    }
+
     public static boolean blank(String s) {
         return s == null || s.isEmpty();
     }

@@ -1,7 +1,6 @@
 package com.venafi.vcert.sdk.connectors;
 
 
-import com.venafi.vcert.sdk.VCertException;
 import org.junit.jupiter.api.Test;
 
 import java.security.KeyPairGenerator;
@@ -10,9 +9,6 @@ import java.security.Provider;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.Collections;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 
 public class ZoneConfigurationTest {
@@ -36,7 +32,7 @@ public class ZoneConfigurationTest {
         System.out.println(test.toUpperCase());
         System.out.println(test.toUpperCase().toLowerCase());
         String knowledge = "Wissen";
-//        assertFalse(knowledge.toUpperCase().equals("Wißen".toUpperCase()));
+//        assertFalse(knowledge.toUpperCase().equals("Wißen".toUpperCase())); // Wissen is German for knowledge, Wißen is misspelled, so they really aren't equal - but equalsFold doesn't know context/words/meaning
     }
 
     @Test
