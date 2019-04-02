@@ -115,7 +115,11 @@ public class CloudConnector implements Connector {
             throw new VCertException("Must be autheticated to request a certificate");
         }
         Zone z = getZoneByTag(zone);
-        CertificateRequestsResponse response = cloud.certificateRequest(auth.apiKey(), new CertificateRequestsPayload().zoneID(z.id()).csr(new String(request.csr())));
+        CertificateRequestsResponse response = cloud.certificateRequest(
+                auth.apiKey(),
+                new CertificateRequestsPayload()
+                        .zoneID(z.id())
+                        .csr(new String(request.csr())));
         String requestId = response.certificateRequests().get(0).id();
         request.pickupId(requestId);
         return requestId;
@@ -203,7 +207,8 @@ public class CloudConnector implements Connector {
     }
 
     @Data
-    static class CertificateRequestsResponse {
+    @SuppressWarnings("WeakerAccess")
+    public static class CertificateRequestsResponse {
         private List<CertificateRequestsResponseData> certificateRequests;
     }
 

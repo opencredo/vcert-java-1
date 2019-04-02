@@ -10,7 +10,13 @@ import com.venafi.vcert.sdk.endpoint.AllowedKeyConfiguration;
 import com.venafi.vcert.sdk.utils.Is;
 import lombok.Data;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -26,7 +32,7 @@ public class ZoneConfiguration {
     private String locality;
     private Policy policy = new Policy(); // Go merges the policy struct into the ZoneConfiguration one...
 
-    private SignatureAlgorithm hashAlgorithm;
+    private SignatureAlgorithm hashAlgorithm = SignatureAlgorithm.UnknownSignatureAlgorithm;
 
     private Map<String, String> customAttributeValues = new HashMap<>(); // Go SDK factory sets an empty map
 
@@ -185,7 +191,7 @@ public class ZoneConfiguration {
     }
 
     private boolean isComponentValid(Collection<String> regexes, Collection<String> components) {
-        if(regexes.size() == 0 && components.size() == 0) {
+        if(regexes.size() == 0 || components.size() == 0) {
             return true;
         }
 
