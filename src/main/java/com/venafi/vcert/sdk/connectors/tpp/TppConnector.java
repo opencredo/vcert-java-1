@@ -2,16 +2,18 @@ package com.venafi.vcert.sdk.connectors.tpp;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.venafi.vcert.sdk.VCertException;
-import com.venafi.vcert.sdk.certificate.CertificateRequest;
+import com.venafi.vcert.sdk.certificate.*;
 import com.venafi.vcert.sdk.connectors.Connector;
 import com.venafi.vcert.sdk.connectors.Policy;
 import com.venafi.vcert.sdk.connectors.ServerPolicy;
 import com.venafi.vcert.sdk.endpoint.Authentication;
+import com.venafi.vcert.sdk.endpoint.ConnectorType;
 import com.venafi.vcert.sdk.utils.Is;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 
+import java.security.KeyStore;
 import java.time.OffsetDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,8 +41,28 @@ public class TppConnector implements Connector {
     }
 
     @Override
+    public ConnectorType getType() {
+        return ConnectorType.TPP;
+    }
+
+    @Override
+    public void setBaseUrl(String url) throws VCertException {
+        throw new UnsupportedOperationException("Method not yet implemented");
+    }
+
+    @Override
     public void setZone(String zone) {
         this.zone = zone;
+    }
+
+    @Override
+    public void ping() throws VCertException {
+        throw new UnsupportedOperationException("Method not yet implemented");
+    }
+
+    @Override
+    public void register(String eMail) throws VCertException {
+        throw new UnsupportedOperationException("Method not yet implemented");
     }
 
     public void authenticate(Authentication auth) throws VCertException {
@@ -99,6 +121,36 @@ public class TppConnector implements Connector {
             }
         }
         return request;
+    }
+
+    @Override
+    public String requestCertificate(CertificateRequest request, String zone) throws VCertException {
+        throw new UnsupportedOperationException("Method not yet implemented");
+    }
+
+    @Override
+    public KeyStore retrieveCertificate(CertificateRequest request) throws VCertException {
+        throw new UnsupportedOperationException("Method not yet implemented");
+    }
+
+    @Override
+    public void revokeCertificate(RevocationRequest request) throws VCertException {
+        throw new UnsupportedOperationException("Method not yet implemented");
+    }
+
+    @Override
+    public String renewCertificate(RenewalRequest request) throws VCertException {
+        throw new UnsupportedOperationException("Method not yet implemented");
+    }
+
+    @Override
+    public ImportResponse importCertificate(ImportRequest request) throws VCertException {
+        throw new UnsupportedOperationException("Method not yet implemented");
+    }
+
+    @Override
+    public Policy readPolicyConfiguration(String zone) throws VCertException {
+        throw new UnsupportedOperationException("Method not yet implemented");
     }
 
     private String getPolicyDN(final String zone) {
