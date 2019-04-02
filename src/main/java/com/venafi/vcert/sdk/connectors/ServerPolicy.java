@@ -9,11 +9,7 @@ import com.venafi.vcert.sdk.utils.Is;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -109,7 +105,7 @@ public class ServerPolicy {
         policy.upnSanRegExs(allOrNothing.apply(subjAltNameUpnAllowed));
 
         if(keyPair.keyAlgorithm().locked()) {
-            KeyType keyType = KeyType.set(keyPair.keyAlgorithm().value());
+            KeyType keyType = KeyType.from(keyPair.keyAlgorithm().value());
             AllowedKeyConfiguration key = new AllowedKeyConfiguration().keyType(keyType).keySizes(Collections.emptyList());
             if(KeyType.RSA.equals(keyType)) {
                 if(keyPair.keySize().locked()) {
@@ -123,7 +119,7 @@ public class ServerPolicy {
                 }
             } else {
                 if(keyPair.ellipticCurve().locked()) {
-                    EllipticCurve curve = EllipticCurve.set(keyPair.ellipticCurve().value());
+                    EllipticCurve curve = EllipticCurve.from(keyPair.ellipticCurve().value());
                     key.keyCurves().add(curve);
                 } else {
                     key.keyCurves(EllipticCurve.allSupportedCures());

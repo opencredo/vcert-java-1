@@ -6,7 +6,7 @@ import java.util.List;
 public enum KeyType {
     RSA, ECDSA;
 
-    public static KeyType set(String value) {
+    public static KeyType from(String value) {
         switch (value.toLowerCase()) {
             case "rsa": return RSA;
             case "ecdsa":

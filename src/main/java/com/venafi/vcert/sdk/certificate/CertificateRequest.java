@@ -1,5 +1,6 @@
 package com.venafi.vcert.sdk.certificate;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.venafi.vcert.sdk.SignatureAlgorithm;
 import com.venafi.vcert.sdk.VCertException;
 import com.venafi.vcert.sdk.utils.Is;
@@ -13,9 +14,8 @@ import sun.misc.BASE64Encoder;
 import javax.security.auth.x500.X500Principal;
 import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.security.spec.ECGenParameterSpec;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
@@ -88,11 +88,22 @@ public class CertificateRequest {
         }
     }
 
-    private KeyPair generateECDSAKeyPair(EllipticCurve keyCurve) throws VCertException {
-        throw new UnsupportedOperationException("Yet to implement key generation based on elliptic curves");
+    @VisibleForTesting
+    KeyPair generateECDSAKeyPair(EllipticCurve keyCurve) throws VCertException {
+        try {
+            KeyPairGenerator g = KeyPairGenerator.getInstance("ECDSA", "BC");
+            ECGenParameterSpec spec = new ECGenParameterSpec(keyCurve.bcName());
+            g.initialize(spec);
+            return g.generateKeyPair();
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            throw new VCertException("No security provider found for KeyFactory.EC", e);
+        } catch (InvalidAlgorithmParameterException e) {
+            throw new VCertException(format("No algorithmn provider for curve %s", keyCurve.bcName()) , e);
+        }
     }
 
-    private KeyPair generateRSAKeyPair(Integer keyLength) throws VCertException {
+    @VisibleForTesting
+    KeyPair generateRSAKeyPair(Integer keyLength) throws VCertException {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(keyLength);
