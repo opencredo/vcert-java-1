@@ -100,6 +100,7 @@ public class TppConnector implements Connector {
 
     @Override
     public CertificateRequest generateRequest(ZoneConfiguration config, CertificateRequest request) throws VCertException {
+        // todo: should one really have to pass a request into a "generate request" method?
         if(config == null) {
             config = readZoneConfiguration(zone);
         }
@@ -134,7 +135,7 @@ public class TppConnector implements Connector {
                 break;
             }
         }
-        return request;
+        return request; // TODO: should we return the request we modified? It's not a copy, it's the one that was passed in, mutated.
     }
 
     @Override
@@ -229,7 +230,7 @@ public class TppConnector implements Connector {
         throw new UnsupportedOperationException("Method not yet implemented");
     }
 
-    private String getPolicyDN(final String zone) {
+    String getPolicyDN(final String zone) {
         String result = zone;
         Matcher candidate = policy.matcher(zone);
         if(!candidate.matches()) {
