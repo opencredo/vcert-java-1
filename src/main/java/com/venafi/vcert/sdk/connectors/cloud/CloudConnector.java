@@ -1,5 +1,6 @@
 package com.venafi.vcert.sdk.connectors.cloud;
 
+import com.google.gson.annotations.SerializedName;
 import com.venafi.vcert.sdk.VCertException;
 import com.venafi.vcert.sdk.certificate.*;
 import com.venafi.vcert.sdk.connectors.Connector;
@@ -9,9 +10,12 @@ import com.venafi.vcert.sdk.connectors.cloud.domain.UserDetails;
 import com.venafi.vcert.sdk.connectors.tpp.ZoneConfiguration;
 import com.venafi.vcert.sdk.endpoint.Authentication;
 import com.venafi.vcert.sdk.endpoint.ConnectorType;
+import com.venafi.vcert.sdk.utils.Is;
+import lombok.Data;
 import lombok.Getter;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -78,9 +82,9 @@ public class CloudConnector implements Connector {
 
     @Override
     public CertificateRequest generateRequest(ZoneConfiguration config, CertificateRequest request) throws VCertException {
-        switch(request.csrOrigin()) {
+        switch (request.csrOrigin()) {
             case LocalGeneratedCSR:
-                if(config == null) {
+                if (config == null) {
                     config = readZoneConfiguration(zone);
                 }
                 config.validateCertificateRequest(request);
@@ -105,7 +109,24 @@ public class CloudConnector implements Connector {
 
     @Override
     public String requestCertificate(CertificateRequest request, String zone) throws VCertException {
-        throw new UnsupportedOperationException("Method not yet implemented");
+        if (Is.blank(zone)) {
+            zone = this.zone;
+        }
+        if (CsrOriginOption.ServiceGeneratedCSR == request.csrOrigin()) {
+            throw new VCertException("service generated CSR is not supported by Saas service");
+        }
+        if (user == null || user.company() == null) {
+            throw new VCertException("Must be autheticated to request a certificate");
+        }
+        Zone z = getZoneByTag(zone);
+        CertificateRequestsResponse response = cloud.certificateRequest(
+                auth.apiKey(),
+                new CertificateRequestsPayload()
+                        .zoneID(z.id())
+                        .csr(new String(request.csr())));
+        String requestId = response.certificateRequests().get(0).id();
+        request.pickupId(requestId);
+        return requestId;
     }
 
     @Override
@@ -234,7 +255,7 @@ public class CloudConnector implements Connector {
     private CertificatePolicy getPoliciesById(Collection<String> ids) throws VCertException {
         CertificatePolicy policy = new CertificatePolicy();
         VCertException.throwIfNull(user, "must be authenticated to read the zone configuration");
-        for(String id : ids) {
+        for (String id : ids) {
             CertificatePolicy certificatePolicy = cloud.policyById(id, auth.apiKey());
             switch(certificatePolicy.certificatePolicyType()) {
                 case "CERTIFICATE_IDENTITY": {
@@ -274,5 +295,36 @@ public class CloudConnector implements Connector {
                 .replaceAll("/.", "");
 
         return searchCertificates(Cloud.SearchRequest.findByFingerPrint(cleanFingerprint));
+    }
+
+    @Data
+    static class CertificateRequestsPayload {
+        // private String companyId;
+        // private String downloadFormat;
+        @SerializedName("certificateSigningRequest")
+        private String csr;
+        private String zoneID;
+        private String existingManagedCertificateId;
+        private boolean reuseCSR;
+    }
+
+    @Data
+    @SuppressWarnings("WeakerAccess")
+    public static class CertificateRequestsResponse {
+        private List<CertificateRequestsResponseData> certificateRequests;
+    }
+
+    @Data
+    static class CertificateRequestsResponseData {
+        private String id;
+        private String zoneId;
+        private String status;
+        private String subjectDN;
+        private boolean generatedKey;
+        private boolean defaultKeyPassword;
+        private Collection<String> certificateInstanceIds;
+        private OffsetDateTime creationDate;
+        private String pem;
+        private String der;
     }
 }

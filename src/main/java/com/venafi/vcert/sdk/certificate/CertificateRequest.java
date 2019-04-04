@@ -39,12 +39,12 @@ public class CertificateRequest {
     private SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.UnknownSignatureAlgorithm;
     private PublicKeyAlgorithm publicKeyAlgorithm = PublicKeyAlgorithm.Unknown;
     private String friendlyName;
-    private KeyType keyType;
+    private KeyType keyType = KeyType.defaultKeyType();
     private int keyLength;
     private EllipticCurve keyCurve;
     private byte[] csr;
     private KeyPair keyPair;
-    private CsrOriginOption csrOrigin;
+    private CsrOriginOption csrOrigin = CsrOriginOption.defaultCsrOrigin();
     private String pickupId;
     private ChainOption chainOption;
     private String keyPassword;
