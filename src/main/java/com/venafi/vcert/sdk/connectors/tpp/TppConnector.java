@@ -13,7 +13,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 
-import java.security.KeyStore;
 import java.time.OffsetDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -129,7 +128,7 @@ public class TppConnector implements Connector {
     }
 
     @Override
-    public KeyStore retrieveCertificate(CertificateRequest request) throws VCertException {
+    public PEMCollection retrieveCertificate(CertificateRequest request) throws VCertException {
         throw new UnsupportedOperationException("Method not yet implemented");
     }
 
