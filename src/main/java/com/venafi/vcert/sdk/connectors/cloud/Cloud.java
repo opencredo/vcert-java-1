@@ -1,6 +1,7 @@
 package com.venafi.vcert.sdk.connectors.cloud;
 
 
+import com.venafi.vcert.sdk.certificate.CertificateStatus;
 import com.venafi.vcert.sdk.connectors.cloud.domain.UserAccount;
 import com.venafi.vcert.sdk.connectors.cloud.domain.UserDetails;
 import com.venafi.vcert.sdk.utils.FeignUtils;
@@ -45,10 +46,16 @@ public interface Cloud {
     CloudConnector.CertificateRequestsResponse certificateRequest(@Param("apiKey") String apiKey, CloudConnector.CertificateRequestsPayload csr);
 
     @Headers("tppl-api-key: {apiKey}")
-    @RequestLine("GET /v1/certificaterequests/{requestId}")
-    CertificateStatus certificateStatus(@Param("apiKey") String apiKey, @Param("requestId") String requestId);
+    @RequestLine("GET /v1/certificaterequests/{id}")
+    CertificateStatus certificateStatus(@Param("id") String id, @Param("apiKey") String apiKey);
 
+    @Headers("tppl-api-key: {apiKey}")
+    @RequestLine("GET /v1/certificaterequests/{id}/certificate?chainOrder={chainOrder}&format=PEM")
+    String certificateViaCSR(@Param("id") String id, @Param("apiKey") String apiKey, @Param("chainOrder") String chainOrder);
 
+    @Headers("tppl-api-key: {apiKey}")
+    @RequestLine("GET /v1/certificates/{id}/encoded")
+    String certificateAsPem(@Param("id") String id, @Param("apiKey") String apiKey);
 
     @Data
     @NoArgsConstructor
