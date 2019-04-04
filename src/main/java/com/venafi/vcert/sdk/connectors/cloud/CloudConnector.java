@@ -14,22 +14,11 @@ import com.venafi.vcert.sdk.utils.Is;
 import lombok.Data;
 import lombok.Getter;
 
-import javax.naming.directory.SearchResult;
-import java.security.KeyStore;
-import java.time.OffsetDateTime;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.time.Duration.ZERO;
@@ -262,7 +251,12 @@ public class CloudConnector implements Connector {
                 throw new VCertException(
                         String.format("More than one CertificateRequestId was found with the same Fingerprint: %s",
                                 request.thumbprint()));
+
+            } else if (requestIds.size() == 0) {
+                throw new VCertException(String.format("Cloud service can not find a certificate with Fingerprint: %s",
+                        request.thumbprint()));
             }
+
         certificateRequestId = requestIds.iterator().next();
 
         } else if (!Is.blank(request.certificateDN())) {
@@ -272,18 +266,36 @@ public class CloudConnector implements Connector {
         }
 
 
-        Cloud.CertificateStatus status = cloud.certificateStatus(auth.apiKey(), certificateRequestId);
+        final CertificateStatus status = cloud.certificateStatus(auth.apiKey(), certificateRequestId);
         VCertException.throwIfNull(status.managedCertificateId(),
                         String.format("failed to submit renewal request for certificate: ManagedCertificateId is empty, certificate status is %s", status.status()));
         VCertException.throwIfNull(status.zoneId(),
                 String.format("failed to submit renewal request for certificate: ZoneId is empty, certificate status is %s", status.status()));
 
 
-        // Verify if latestCertificateId are equal to the first steps.
+        ManagedCertificate managedCertificate = cloud.managedCertificate(status.managedCertificateId(), auth.apiKey());
+        if (!managedCertificate.latestCertificateRequestId().equals(certificateRequestId)) {
+            final StringBuilder errorStr = new StringBuilder();
+            errorStr.append("Certificate under requestId %s ");
+            errorStr.append(!Is.blank(request.thumbprint())? String.format("with thumbprint %s ", request.thumbprint()):"");
+            errorStr.append("is not the latest under ManagedCertificateId %s. The latest request is %s. ");
+            errorStr.append("This error may happen when revoked certificate is requested to be renewed.");
 
+            throw new VCertException(String.format(errorStr.toString(), certificateRequestId, managedCertificate.id(),
+                    managedCertificate.latestCertificateRequestId()));
+        }
 
+        final CertificateRequestsPayload certificateRequest = new CertificateRequestsPayload();
+        certificateRequest.zoneID(status.zoneId());
+        certificateRequest.existingManagedCertificateId(managedCertificate.id());
 
-        throw new UnsupportedOperationException("Method not yet implemented");
+        certificateRequest.reuseCSR(Objects.nonNull(request.request()) && request.request().csr().length > 0);
+        if (certificateRequest.reuseCSR) {
+            certificateRequest.csr(Arrays.toString(request.request().csr()));
+        }
+
+        CertificateRequestsResponse response = cloud.certificateRequest(auth.apiKey(), certificateRequest);
+        return response.certificateRequests().get(0).id();
     }
 
     @Override
