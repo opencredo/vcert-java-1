@@ -10,6 +10,7 @@ import com.venafi.vcert.sdk.connectors.ServerPolicy;
 import com.venafi.vcert.sdk.endpoint.Authentication;
 import com.venafi.vcert.sdk.endpoint.ConnectorType;
 import com.venafi.vcert.sdk.utils.Is;
+import feign.Response;
 import joptsimple.internal.Strings;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,6 +27,7 @@ import java.util.regex.Pattern;
 import static java.lang.String.format;
 import static java.time.Duration.ZERO;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 
@@ -77,7 +79,14 @@ public class TppConnector implements Connector {
 
     @Override
     public void ping() throws VCertException {
-        throw new UnsupportedOperationException("Method not yet implemented");
+        Response response = doPing();
+        if(response.status() != 200) {
+            throw new VCertException(format("ping failed with status %d and reason %s", response.status(), response.reason()));
+        }
+    }
+
+    private Response doPing() {
+        return tpp.ping(apiKey);
     }
 
     public void authenticate(Authentication auth) throws VCertException {
@@ -352,7 +361,15 @@ public class TppConnector implements Connector {
 
     @Override
     public ImportResponse importCertificate(ImportRequest request) throws VCertException {
-        throw new UnsupportedOperationException("Method not yet implemented");
+        if(isBlank(request.policyDN())) {
+            request.policyDN(getPolicyDN(zone));
+        }
+
+        return doImportCertificate(request);
+    }
+
+    private ImportResponse doImportCertificate(ImportRequest request) {
+        return tpp.importCertificate(request, apiKey);
     }
 
     @Override

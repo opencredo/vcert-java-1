@@ -1,10 +1,13 @@
 package com.venafi.vcert.sdk.connectors.tpp;
 
 
+import com.venafi.vcert.sdk.certificate.ImportRequest;
+import com.venafi.vcert.sdk.certificate.ImportResponse;
 import com.venafi.vcert.sdk.utils.FeignUtils;
 import feign.Headers;
 import feign.Param;
 import feign.RequestLine;
+import feign.Response;
 import lombok.Data;
 
 import java.util.List;
@@ -24,7 +27,10 @@ public interface Tpp {
     TppConnector.ReadZoneConfigurationResponse readZoneConfiguration(TppConnector.ReadZoneConfigurationRequest readZoneConfigurationRequest, @Param("apiKey") String apiKey);
 
     @RequestLine("POST certificates/request")
-    @Headers("Content-Type: application/json")
+    @Headers({
+            "Content-Type: application/json",
+            "x-venafi-api-key: {apiKey}"
+    })
     String requestCertificate(TppConnector.CertificateRequestsPayload payload, @Param("apiKey") String apiKey);
 
     @RequestLine("GET certificates/?{search}")
@@ -44,6 +50,17 @@ public interface Tpp {
             "x-venafi-api-key: {apiKey}"
     })
     TppConnector.CertificateRevokeResponse revokeCertificate(TppConnector.CertificateRevokeRequest request, @Param("apiKey") String apiKey);
+
+    @RequestLine("POST certificates/import")
+    @Headers({
+            "Content-Type: application/json",
+            "x-venafi-api-key: {apiKey}"
+    })
+    ImportResponse importCertificate(ImportRequest request, @Param("apiKey") String apiKey);
+
+    @RequestLine("GET /")
+    @Headers("x-venafi-api-key: {apiKey}")
+    Response ping(@Param("apiKey") String apiKey);
 
     static Tpp connect(String baseUrl) {
         return FeignUtils.client(Tpp.class, baseUrl);

@@ -9,6 +9,7 @@ import com.venafi.vcert.sdk.utils.FeignUtils;
 import feign.Headers;
 import feign.Param;
 import feign.RequestLine;
+import feign.Response;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,10 +22,6 @@ public interface Cloud {
     @Headers("tppl-api-key: {apiKey}")
     @RequestLine("GET /v1/useraccounts")
     UserDetails authorize(@Param("apiKey") String apiKey);
-
-    static Cloud connect(String baseUrl) {
-        return FeignUtils.client(Cloud.class, baseUrl);
-    }
 
     @Headers("tppl-api-key: {apiKey}")
     @RequestLine("GET /v1/zones/tag/{zone}")
@@ -62,6 +59,13 @@ public interface Cloud {
     @RequestLine("GET /v1/managedcertificates/{id}")
     ManagedCertificate managedCertificate(@Param("id") String id, @Param("apiKey") String apiKey);
 
+    @RequestLine("GET ping")
+    @Headers("x-venafi-api-key: {apiKey}")
+    Response ping(@Param("apiKey") String apiKey);
+
+    static Cloud connect(String baseUrl) {
+        return FeignUtils.client(Cloud.class, baseUrl);
+    }
 
     @Data
     @NoArgsConstructor
