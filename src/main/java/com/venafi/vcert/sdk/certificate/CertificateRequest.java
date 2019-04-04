@@ -102,18 +102,20 @@ public class CertificateRequest {
         } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
             throw new VCertException("No security provider found for KeyFactory.EC", e);
         } catch (InvalidAlgorithmParameterException e) {
-            throw new VCertException(format("No algorithmn provider for curve %s", keyCurve.bcName()) , e);
+            throw new VCertException(format("No algorithm provider for curve %s", keyCurve.bcName()) , e);
         }
     }
 
     @VisibleForTesting
     KeyPair generateRSAKeyPair(Integer keyLength) throws VCertException {
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC");
             keyPairGenerator.initialize(keyLength);
             return keyPairGenerator.generateKeyPair();
         } catch(NoSuchAlgorithmException e) {
             throw new VCertException("No security provider found for KeyFactory.RSA", e);
+        } catch(NoSuchProviderException e) {
+            throw new VCertException(format("No algorithm provider for RSA with key length %s", Integer.toString(keyLength)) , e);
         }
     }
 
