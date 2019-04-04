@@ -2,12 +2,6 @@ package com.venafi.vcert.sdk.connectors.cloud;
 
 import com.google.gson.annotations.SerializedName;
 import com.venafi.vcert.sdk.VCertException;
-import com.venafi.vcert.sdk.certificate.CertificateRequest;
-import com.venafi.vcert.sdk.certificate.CsrOriginOption;
-import com.venafi.vcert.sdk.certificate.ImportRequest;
-import com.venafi.vcert.sdk.certificate.ImportResponse;
-import com.venafi.vcert.sdk.certificate.RenewalRequest;
-import com.venafi.vcert.sdk.certificate.RevocationRequest;
 import com.venafi.vcert.sdk.certificate.*;
 import com.venafi.vcert.sdk.connectors.Connector;
 import com.venafi.vcert.sdk.connectors.Policy;
@@ -18,15 +12,16 @@ import com.venafi.vcert.sdk.endpoint.Authentication;
 import com.venafi.vcert.sdk.endpoint.ConnectorType;
 import com.venafi.vcert.sdk.utils.Is;
 import lombok.Data;
-import com.venafi.vcert.sdk.endpoint.ConnectorType;
 import lombok.Getter;
 
+import javax.naming.directory.SearchResult;
 import java.security.KeyStore;
 import java.time.OffsetDateTime;
-import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -140,6 +135,41 @@ public class CloudConnector implements Connector {
 
     @Override
     public String renewCertificate(RenewalRequest request) throws VCertException {
+
+        String certificateRequestId = null;
+
+        if (!Is.blank(request.thumbprint())) {
+            Cloud.CertificateSearchResponse result = this.searchCertificatesByFingerprint(request.thumbprint());
+            Set<String> requestIds = result.certificates()
+                    .stream()
+                    .map(c -> c.certificateRequestId())
+                    .collect(Collectors.toSet());
+
+            if (requestIds.size() > 1) {
+                throw new VCertException(
+                        String.format("More than one CertificateRequestId was found with the same Fingerprint: %s",
+                                request.thumbprint()));
+            }
+        certificateRequestId = requestIds.iterator().next();
+
+        } else if (!Is.blank(request.certificateDN())) {
+            certificateRequestId = request.certificateDN();
+        } else {
+            throw new VCertException("failed to create renewal request: CertificateDN or Thumbprint required");
+        }
+
+
+        Cloud.CertificateStatus status = cloud.certificateStatus(auth.apiKey(), certificateRequestId);
+        VCertException.throwIfNull(status.managedCertificateId(),
+                        String.format("failed to submit renewal request for certificate: ManagedCertificateId is empty, certificate status is %s", status.status()));
+        VCertException.throwIfNull(status.zoneId(),
+                String.format("failed to submit renewal request for certificate: ZoneId is empty, certificate status is %s", status.status()));
+
+
+        // Verify if latestCertificateId are equal to the first steps.
+
+
+
         throw new UnsupportedOperationException("Method not yet implemented");
     }
 

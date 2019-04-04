@@ -44,6 +44,12 @@ public interface Cloud {
     @RequestLine("POST /v1/certificaterequests")
     CloudConnector.CertificateRequestsResponse certificateRequest(@Param("apiKey") String apiKey, CloudConnector.CertificateRequestsPayload csr);
 
+    @Headers("tppl-api-key: {apiKey}")
+    @RequestLine("GET /v1/certificaterequests/{requestId}")
+    CertificateStatus certificateStatus(@Param("apiKey") String apiKey, @Param("requestId") String requestId);
+
+
+
     @Data
     @NoArgsConstructor
     class SearchRequest {
@@ -93,6 +99,28 @@ public interface Cloud {
     class Certificate {
         private String id;
         private String managedCertificateId;
+        private String certificateRequestId;
         private List<String> subjectCN;
+    }
+
+    @Data
+    class CertificateStatus {
+        private String id;
+        private String managedCertificateId;
+        private String zoneId;
+        private String status;
+        private CertificateStatusErrorInformation errorInformation;
+        private String creationDate;
+        private String modificationDate;
+        private String certificateSigningRequest;
+        private String subjectDN;
+    }
+
+    @Data
+    class CertificateStatusErrorInformation {
+        private String type;
+        private Integer code;
+        private String message;
+        private List<String> args;
     }
 }

@@ -24,7 +24,7 @@ public interface Connector {
      * @return
      * @throws VCertException
      */
-    CertificateRequest generateRequest(ZoneConfiguration config, CertificateRequest request) throws VCertException; //todo: do we have to pass CertificateREquest into a generate function?
+    CertificateRequest generateRequest(ZoneConfiguration config, CertificateRequest request) throws VCertException;
     String requestCertificate(CertificateRequest request, String zone) throws VCertException;
     KeyStore retrieveCertificate(CertificateRequest request) throws VCertException;
     void revokeCertificate(RevocationRequest request) throws VCertException;
