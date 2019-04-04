@@ -9,6 +9,11 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
+import org.bouncycastle.asn1.eac.ECDSAPublicKey;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.jce.PKCS10CertificationRequest;
+import org.bouncycastle.util.io.pem.PemReader;
 import sun.misc.BASE64Encoder;
 
 import javax.security.auth.x500.X500Principal;
@@ -19,6 +24,12 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.io.IOException;
+import java.io.StringReader;
+import java.net.InetAddress;
+import java.security.*;
+import java.security.cert.Certificate;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.time.Duration;
 import java.util.Collection;
@@ -102,7 +113,7 @@ public class CertificateRequest {
         } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
             throw new VCertException("No security provider found for KeyFactory.EC", e);
         } catch (InvalidAlgorithmParameterException e) {
-            throw new VCertException(format("No algorithm provider for curve %s", keyCurve.bcName()) , e);
+            throw new VCertException(format("No algorithmn provider for curve %s", keyCurve.bcName()) , e);
         }
     }
 
@@ -173,5 +184,68 @@ public class CertificateRequest {
     public static class AttributeTypeAndValueSET {
         private Collection<Integer> type;
         private Collection<Collection<AttributeTypeAndValue>> value;
+    }
+
+    public boolean checkCertificate(Certificate certificate) throws VCertException {
+        // TODO handle enum exception
+        PublicKeyAlgorithm publicKeyAlgorithm = PublicKeyAlgorithm.valueOf(certificate.getPublicKey().getAlgorithm());
+
+        if(keyPair != null && keyPair.getPublic() != null && keyPair.getPrivate() != null) {
+            if( keyType.X509Type() != publicKeyAlgorithm) {
+                throw new VCertException(format("unmatched key type: %s, %s", keyType.X509Type(), publicKeyAlgorithm.name()));
+            }
+            switch(publicKeyAlgorithm) {
+                case RSA:
+                    RSAPublicKey certPublicKey = (RSAPublicKey) certificate.getPublicKey();
+                    RSAPublicKey reqPublicKey = (RSAPublicKey) keyPair.getPublic();
+                    // TODO can be equals?
+                    if(certPublicKey.getModulus().compareTo(reqPublicKey.getModulus()) != 0) {
+                        throw new VCertException("unmatched key modules");
+                    }
+                    break;
+                case ECDSA:
+                    ECDSAPublicKey certEcdsaPublicKey = (ECDSAPublicKey) certificate.getPublicKey();
+                    ECDSAPublicKey reqEcdsaPublicKey = (ECDSAPublicKey) keyPair.getPublic();
+                    // TODO make sure comparison is valid
+                    if(certEcdsaPublicKey.getPrimeModulusP().compareTo(reqEcdsaPublicKey.getPrimeModulusP()) != 0) {
+                        throw new VCertException("unmatched X for eliptic keys");
+                    }
+                    break;
+                default:
+                    throw new VCertException(format("unknown key algorithm %s", publicKeyAlgorithm.name()));
+            }
+        } else if(csr.length != 0) {
+            try {
+                PemReader pemReader = new PemReader(new StringReader(new String(csr)));
+                PKCS10CertificationRequest csr = new PKCS10CertificationRequest(pemReader.readPemObject().getContent());
+                pemReader.close();
+
+                PublicKeyAlgorithm csrPublicKeyAlgorithm = PublicKeyAlgorithm.valueOf(csr.getPublicKey("BC").getAlgorithm());
+                if(publicKeyAlgorithm != csrPublicKeyAlgorithm) {
+                    throw new VCertException(format("unmatched key type: %s, %s", publicKeyAlgorithm, csrPublicKeyAlgorithm));
+                }
+
+                switch(csrPublicKeyAlgorithm) {
+                    case RSA:
+                        RSAPublicKey certPublicKey = (RSAPublicKey) certificate.getPublicKey();
+                        RSAPublicKey reqPublicKey = (RSAPublicKey) csr.getPublicKey();
+                        if(certPublicKey.getModulus().compareTo(reqPublicKey.getModulus()) != 0) {
+                            throw new VCertException("unmatched key modules");
+                        }
+                        break;
+                    case ECDSA:
+                        ECDSAPublicKey certEcdsaPublicKey = (ECDSAPublicKey) certificate.getPublicKey();
+                        ECDSAPublicKey reqEcdsaPublicKey = (ECDSAPublicKey) csr.getPublicKey();
+                        // TODO make sure comparison is valid
+                        if(certEcdsaPublicKey.getPrimeModulusP().compareTo(reqEcdsaPublicKey.getPrimeModulusP()) != 0) {
+                            throw new VCertException("unmatched X for eliptic keys");
+                        }
+                        break;
+                }
+            } catch(NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | IOException e) {
+                throw new VCertException(format("bad csr: %s", e.getMessage()), e);
+            }
+        }
+        return true;
     }
 }

@@ -11,6 +11,11 @@ import com.venafi.vcert.sdk.utils.Is;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -22,7 +27,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 @Data
-// TODO mvoe up one package
+// TODO move up one package
 public class ZoneConfiguration {
 
     private String organization;
@@ -33,8 +38,11 @@ public class ZoneConfiguration {
     private Policy policy = new Policy(); // Go merges the policy struct into the ZoneConfiguration one...
 
     private SignatureAlgorithm hashAlgorithm = SignatureAlgorithm.UnknownSignatureAlgorithm;
+    private Policy policy = new Policy(); // Go merges the policy struct into the ZoneConfiguration one...
+    private SignatureAlgorithm hashAlgorithm = SignatureAlgorithm.UnknownSignatureAlgorithm;
 
     private Map<String, String> customAttributeValues = new HashMap<>(); // Go SDK factory sets an empty map
+
 
     /**
      * UpdateCertificateRequest updates a certificate request based on the zone configurataion retrieved from the remote endpoint
@@ -42,7 +50,6 @@ public class ZoneConfiguration {
      */
     public void updateCertificateRequest(CertificateRequest request) {
         CertificateRequest.PKIXName subject = request.subject();
-
         subject.organization(Entity.of(subject.organization(), organization).resolve());
         if(Is.blank(subject.organizationalUnit()) && !Is.blank(organizationalUnit)) {
             subject.organizationalUnit(organizationalUnit);
