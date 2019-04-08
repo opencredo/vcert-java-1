@@ -73,7 +73,6 @@ class CloudConnectorAT {
                 .keyType(KeyType.RSA);
 
         certificateRequest = classUnderTest.generateRequest(zoneConfiguration, certificateRequest);
-
         assertThat(certificateRequest.csr()).isNotEmpty();
 
         PKCS10CertificationRequest request = (PKCS10CertificationRequest) new PEMParser(new StringReader(new String(certificateRequest.csr()))).readObject();
