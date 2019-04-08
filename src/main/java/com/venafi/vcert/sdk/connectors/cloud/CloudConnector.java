@@ -6,7 +6,6 @@ import com.venafi.vcert.sdk.VCertException;
 import com.venafi.vcert.sdk.certificate.*;
 import com.venafi.vcert.sdk.connectors.Connector;
 import com.venafi.vcert.sdk.connectors.Policy;
-import com.venafi.vcert.sdk.connectors.cloud.domain.UserAccount;
 import com.venafi.vcert.sdk.connectors.cloud.domain.UserDetails;
 import com.venafi.vcert.sdk.connectors.tpp.ZoneConfiguration;
 import com.venafi.vcert.sdk.endpoint.Authentication;
@@ -37,7 +36,7 @@ public class CloudConnector implements Connector {
     private Authentication auth;
     private String zone;
 
-    CloudConnector(Cloud cloud) {
+    public CloudConnector(Cloud cloud) {
         this.cloud = cloud;
     }
 
