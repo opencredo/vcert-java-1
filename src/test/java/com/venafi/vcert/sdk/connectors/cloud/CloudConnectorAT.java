@@ -6,6 +6,7 @@ import com.venafi.vcert.sdk.connectors.tpp.ZoneConfiguration;
 import com.venafi.vcert.sdk.endpoint.Authentication;
 import feign.FeignException;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static com.venafi.vcert.sdk.TestUtils.getTestIps;
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,7 +36,7 @@ class CloudConnectorAT {
 
     @BeforeEach
     public void authenticate() throws VCertException {
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        Security.addProvider(new BouncyCastleProvider());
         Cloud cloud = Cloud.connect(System.getenv("VENAFI_CLOUD_URL"));
         classUnderTest = new CloudConnector(cloud);
         Authentication authentication = new Authentication(null, null, System.getenv("VENAFI_API_KEY"));
@@ -78,13 +80,13 @@ class CloudConnectorAT {
         PKCS10CertificationRequest request = (PKCS10CertificationRequest) new PEMParser(new StringReader(new String(certificateRequest.csr()))).readObject();
 
         String subject = request.getSubject().toString();
+        assertThat(subject).contains(format("CN=%s", commonName));
         assertThat(subject).contains("O=Venafi, Inc.");
         assertThat(subject).contains("OU=Engineering");
         assertThat(subject).contains("OU=Automated Tests");
         assertThat(subject).contains("C=US");
         assertThat(subject).contains("L=SLC");
         assertThat(subject).contains("P=Utah");
-
     }
 
     @Test
