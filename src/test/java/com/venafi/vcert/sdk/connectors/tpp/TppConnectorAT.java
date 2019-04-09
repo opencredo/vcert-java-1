@@ -138,7 +138,6 @@ class TppConnectorAT {
         PEMCollection pemCollection = classUnderTest.retrieveCertificate(certificateRequest);
 
         assertThat(pemCollection.certificate()).isNotNull();
-        assertThat(pemCollection.chain()).hasSize(2);
         assertThat(pemCollection.privateKey()).isNull();
     }
 
