@@ -9,6 +9,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.util.Strings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -77,16 +78,16 @@ class CloudConnectorAT {
         certificateRequest = classUnderTest.generateRequest(zoneConfiguration, certificateRequest);
         assertThat(certificateRequest.csr()).isNotEmpty();
 
-        PKCS10CertificationRequest request = (PKCS10CertificationRequest) new PEMParser(new StringReader(new String(certificateRequest.csr()))).readObject();
+        PKCS10CertificationRequest request = (PKCS10CertificationRequest) new PEMParser(new StringReader(Strings.fromByteArray(certificateRequest.csr()))).readObject();
 
         String subject = request.getSubject().toString();
         assertThat(subject).contains(format("CN=%s", commonName));
-        assertThat(subject).contains("O=Venafi, Inc.");
+        assertThat(subject).contains("O=Venafi\\, Inc.");
         assertThat(subject).contains("OU=Engineering");
         assertThat(subject).contains("OU=Automated Tests");
         assertThat(subject).contains("C=US");
         assertThat(subject).contains("L=SLC");
-        assertThat(subject).contains("P=Utah");
+        assertThat(subject).contains("ST=Utah");
     }
 
     @Test

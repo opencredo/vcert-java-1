@@ -1,6 +1,7 @@
 package com.venafi.vcert.sdk.connectors.tpp;
 
 
+import com.google.gson.annotations.SerializedName;
 import com.venafi.vcert.sdk.certificate.ImportRequest;
 import com.venafi.vcert.sdk.certificate.ImportResponse;
 import com.venafi.vcert.sdk.utils.FeignUtils;
@@ -31,7 +32,7 @@ public interface Tpp {
             "Content-Type: application/json",
             "x-venafi-api-key: {apiKey}"
     })
-    String requestCertificate(TppConnector.CertificateRequestsPayload payload, @Param("apiKey") String apiKey);
+    CertificateRequestResponse requestCertificate(TppConnector.CertificateRequestsPayload payload, @Param("apiKey") String apiKey);
 
     @RequestLine("GET certificates/?{search}")
     @Headers("x-venafi-api-key: {apiKey}")
@@ -42,7 +43,7 @@ public interface Tpp {
             "Content-Type: application/json",
             "x-venafi-api-key: {apiKey}"
     })
-    TppConnector.CertificateRetrieveResponse certificateRetrieve(TppConnector.CertificateRetrieveRequest certificateRetrieveRequest, @Param("apiKey") String apiKey);
+    CertificateRetrieveResponse certificateRetrieve(TppConnector.CertificateRetrieveRequest certificateRetrieveRequest, @Param("apiKey") String apiKey);
 
     @RequestLine("POST certificates/revoke")
     @Headers({
@@ -89,5 +90,20 @@ public interface Tpp {
         private List<String> subjectCN;
     }
 
+    @Data
+    class CertificateRequestResponse {
+        @SerializedName("CertificateDN")
+        private String certificateDN;
+        @SerializedName("Guid")
+        private String guid;
+    }
 
+    @Data
+    class CertificateRetrieveResponse {
+        private String certificateData;
+        private String format;
+        private String filename;
+        private String status;
+        private int stage;
+    }
 }

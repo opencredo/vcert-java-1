@@ -31,9 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -87,7 +85,7 @@ class TppConnectorTest {
                             new ServerPolicy.KeyPair(new LockableValue<>(false, "keyAlgo"),
                                     new LockableValue<>(false, 1024),
                                     null))));
-        when(tpp.requestCertificate(any(TppConnector.CertificateRequestsPayload.class), eq(API_KEY))).thenReturn("reqId");
+        when(tpp.requestCertificate(any(TppConnector.CertificateRequestsPayload.class), eq(API_KEY))).thenReturn(new Tpp.CertificateRequestResponse().certificateDN("reqId"));
         String zoneTag = "myZone";
         ZoneConfiguration zoneConfig = classUnderTest.readZoneConfiguration(classUnderTest.getPolicyDN(zoneTag));
         String cn = String.format("t%d-%s.venafi.xample.com", Instant.now().getEpochSecond(), RandomStringUtils.randomAlphabetic(4).toLowerCase());

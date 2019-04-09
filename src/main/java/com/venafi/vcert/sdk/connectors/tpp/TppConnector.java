@@ -151,11 +151,12 @@ public class TppConnector implements Connector {
 
     @Override
     public String requestCertificate(CertificateRequest request, String zone) throws VCertException {
-        if(Is.blank(zone)) {
+        if(isBlank(zone)) {
             zone = this.zone;
         }
         CertificateRequestsPayload payload = prepareRequest(request, zone);
-        String requestId = tpp.requestCertificate(payload, apiKey);
+        Tpp.CertificateRequestResponse response = tpp.requestCertificate(payload, apiKey);
+        String requestId = response.certificateDN();
         request.pickupId(requestId);
         return requestId;
     }
@@ -246,7 +247,7 @@ public class TppConnector implements Connector {
         // TODO move this retry logic to feign client
         Instant startTime = Instant.now();
         while(true) {
-            CertificateRetrieveResponse retrieveResponse = retrieveCertificateOnce(certReq);
+            Tpp.CertificateRetrieveResponse retrieveResponse = retrieveCertificateOnce(certReq);
             if(isNotBlank(retrieveResponse.certificateData())) {
                 PEMCollection pemCollection = PEMCollection.fromResponse(retrieveResponse.certificateData(), request.chainOption());
                 request.checkCertificate(pemCollection.certificate());
@@ -270,7 +271,7 @@ public class TppConnector implements Connector {
         }
     }
 
-    private CertificateRetrieveResponse retrieveCertificateOnce(CertificateRetrieveRequest certificateRetrieveRequest) {
+    private Tpp.CertificateRetrieveResponse retrieveCertificateOnce(CertificateRetrieveRequest certificateRetrieveRequest) {
         return tpp.certificateRetrieve(certificateRetrieveRequest, apiKey);
     }
 
@@ -316,12 +317,12 @@ public class TppConnector implements Connector {
     public String renewCertificate(RenewalRequest request) throws VCertException {
         String certificateDN;
 
-        if(!Is.blank(request.thumbprint()) && Is.blank(request.certificateDN())) {
+        if(isNotBlank(request.thumbprint()) && isBlank(request.certificateDN())) {
             Tpp.CertificateSearchResponse searchResult = searchCertificatesByFingerprint(request.thumbprint());
-            if (searchResult.certificates().isEmpty()) {
+            if(searchResult.certificates().isEmpty()) {
                 throw new VCertException(String.format("No certificate found using fingerprint %s", request.thumbprint()));
             }
-            if (searchResult.certificates().size() > 1 ) {
+            if(searchResult.certificates().size() > 1) {
                 throw new VCertException(String.format("More than one certificate was found with the same thumbprint"));
             }
             certificateDN = searchResult.certificates().get(0).certificateRequestId();
@@ -329,19 +330,19 @@ public class TppConnector implements Connector {
             certificateDN = request.certificateDN();
         }
 
-        if (isNull(certificateDN)) {
+        if(isNull(certificateDN)) {
             throw new VCertException("Failed to create renewal request: CertificateDN or Thumbprint required");
         }
 
         final CertificateRenewalRequest renewalRequest = new CertificateRenewalRequest();
         renewalRequest.certificateDN(certificateDN);
 
-        if (Objects.nonNull(request.request()) && request.request().csr().length > 0) {
+        if(Objects.nonNull(request.request()) && request.request().csr().length > 0) {
             renewalRequest.PKCS10 = org.bouncycastle.util.Strings.fromByteArray(request.request().csr());
         }
 
         final CertificateRenewalResponse response = tpp.renewCertificate(renewalRequest, apiKey());
-        if (!response.success()) {
+        if(!response.success()) {
             throw new VCertException(String.format("Certificate renewal error: %s", response.error));
         }
 
@@ -446,15 +447,6 @@ public class TppConnector implements Connector {
         private boolean includeChain;
         private String friendlyName;
         private boolean rootFirstOrder;
-    }
-
-    @Data
-    class CertificateRetrieveResponse {
-        private String certificateData;
-        private String format;
-        private String filename;
-        private String status;
-        private int stage;
     }
 
     @Data
