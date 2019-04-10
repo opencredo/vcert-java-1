@@ -142,10 +142,32 @@ class TppConnectorAT {
     }
 
     @Test
-    void revokeCertificate() throws VCertException {
-        assertThrows(UnsupportedOperationException.class, () -> {
-            classUnderTest.revokeCertificate(new RevocationRequest());
-        });
+    void revokeCertificate() throws VCertException, SocketException, UnknownHostException {
+        String zone = System.getenv("VENAFI_ZONE");
+        String commonName = System.getenv("VENAFI_CERT_COMMON_NAME");
+        ZoneConfiguration zoneConfiguration = classUnderTest.readZoneConfiguration(zone);
+        CertificateRequest certificateRequest = new CertificateRequest().subject(
+                new CertificateRequest.PKIXName()
+                        .commonName(commonName)
+                        .organization(Collections.singletonList("Venafi"))
+                        .organizationalUnit(Collections.singletonList("Demo"))
+                        .country(Collections.singletonList("GB"))
+                        .locality(Collections.singletonList("Bracknell"))
+                        .province(Collections.singletonList("Berkshire")))
+                .dnsNames(Collections.singletonList(InetAddress.getLocalHost().getHostName()))
+                .ipAddresses(getTestIps())
+                .keyType(KeyType.RSA)
+                .keyLength(2048);
+
+        certificateRequest = classUnderTest.generateRequest(zoneConfiguration, certificateRequest);
+        String certificateId = classUnderTest.requestCertificate(certificateRequest, zone);
+        assertThat(certificateId).isNotNull();
+
+        RevocationRequest revocationRequest = new RevocationRequest();
+        revocationRequest.reason("key-compromise");
+        revocationRequest.certificateDN(certificateRequest.pickupId());
+
+        classUnderTest.revokeCertificate(revocationRequest);
     }
 
     @Test

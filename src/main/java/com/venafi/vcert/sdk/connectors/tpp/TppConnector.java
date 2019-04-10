@@ -307,13 +307,13 @@ public class TppConnector implements Connector {
                 .comments(request.comments())
                 .disable(request.disable());
 
-        CertificateRevokeResponse revokeResponse = revokeCertificate(revokeRequest);
+        Tpp.CertificateRevokeResponse revokeResponse = revokeCertificate(revokeRequest);
         if(!revokeResponse.success()) {
             throw new VCertException(format("Revocation error: %s", revokeResponse.error()));
         }
     }
 
-    private CertificateRevokeResponse revokeCertificate(CertificateRevokeRequest request) {
+    private Tpp.CertificateRevokeResponse revokeCertificate(CertificateRevokeRequest request) {
         return tpp.revokeCertificate(request, apiKey);
     }
 
@@ -460,13 +460,6 @@ public class TppConnector implements Connector {
         private Integer reason;
         private String comments;
         private boolean disable;
-    }
-
-    @Data
-    class CertificateRevokeResponse {
-        private boolean requested;
-        private boolean success;
-        private String error;
     }
 
     @Data

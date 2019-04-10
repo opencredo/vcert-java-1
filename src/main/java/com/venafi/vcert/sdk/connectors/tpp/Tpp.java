@@ -48,7 +48,7 @@ public interface Tpp {
             "Content-Type: application/json",
             "x-venafi-api-key: {apiKey}"
     })
-    TppConnector.CertificateRevokeResponse revokeCertificate(TppConnector.CertificateRevokeRequest request, @Param("apiKey") String apiKey);
+    Tpp.CertificateRevokeResponse revokeCertificate(TppConnector.CertificateRevokeRequest request, @Param("apiKey") String apiKey);
 
 
     @RequestLine("POST certificates/renew")
@@ -105,6 +105,13 @@ public interface Tpp {
 
     @Data
     class CertificateRenewalResponse {
+        private boolean success;
+        private String error;
+    }
+
+    @Data
+    class CertificateRevokeResponse {
+        private boolean requested;
         private boolean success;
         private String error;
     }
