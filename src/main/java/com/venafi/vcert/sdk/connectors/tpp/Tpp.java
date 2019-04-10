@@ -5,13 +5,11 @@ import com.google.gson.annotations.SerializedName;
 import com.venafi.vcert.sdk.certificate.ImportRequest;
 import com.venafi.vcert.sdk.certificate.ImportResponse;
 import com.venafi.vcert.sdk.utils.FeignUtils;
-import feign.Headers;
-import feign.Param;
-import feign.RequestLine;
-import feign.Response;
+import feign.*;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 
 public interface Tpp {
@@ -34,9 +32,9 @@ public interface Tpp {
     })
     CertificateRequestResponse requestCertificate(TppConnector.CertificateRequestsPayload payload, @Param("apiKey") String apiKey);
 
-    @RequestLine("GET certificates/?{search}")
+    @RequestLine("GET certificates/")
     @Headers("x-venafi-api-key: {apiKey}")
-    Tpp.CertificateSearchResponse searchCertificates(@Param("search") String searchRequest, @Param("apiKey") String apiKey);
+    Tpp.CertificateSearchResponse searchCertificates(@QueryMap Map<String, String> query, @Param("apiKey") String apiKey);
 
     @RequestLine("POST certificates/retrieve")
     @Headers({
@@ -58,7 +56,7 @@ public interface Tpp {
             "Content-Type: application/json",
             "x-venafi-api-key: {apiKey}"
     })
-    TppConnector.CertificateRenewalResponse renewCertificate(TppConnector.CertificateRenewalRequest request, @Param("apiKey") String apiKey);
+    Tpp.CertificateRenewalResponse renewCertificate(TppConnector.CertificateRenewalRequest request, @Param("apiKey") String apiKey);
 
 
     @RequestLine("POST certificates/import")
@@ -84,10 +82,8 @@ public interface Tpp {
 
     @Data
     class Certificate {
-        private String id;
-        private String managedCertificateId;
-        private String certificateRequestId;
-        private List<String> subjectCN;
+
+        @SerializedName("DN") private String certificateRequestId;
     }
 
     @Data
@@ -105,5 +101,11 @@ public interface Tpp {
         private String filename;
         private String status;
         private int stage;
+    }
+
+    @Data
+    class CertificateRenewalResponse {
+        private boolean success;
+        private String error;
     }
 }

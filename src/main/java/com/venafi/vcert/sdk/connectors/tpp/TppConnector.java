@@ -11,7 +11,6 @@ import com.venafi.vcert.sdk.endpoint.Authentication;
 import com.venafi.vcert.sdk.endpoint.ConnectorType;
 import com.venafi.vcert.sdk.utils.Is;
 import feign.Response;
-import joptsimple.internal.Strings;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -279,16 +278,19 @@ public class TppConnector implements Connector {
 
 
     private Tpp.CertificateSearchResponse searchCertificatesByFingerprint(String fingerprint) {
-        String cleanFingerprint = fingerprint
+        final String cleanFingerprint = fingerprint
                 .replaceAll(":", "")
                 .replaceAll("/.", "")
                 .toUpperCase();
 
-        return searchCertificates(Collections.singletonList(format("Thumbprint=%s", cleanFingerprint)));
+        final Map<String,String> searchRequest = new HashMap<String,String>();
+        searchRequest.put("Thumbprint", fingerprint);
+
+        return searchCertificates(searchRequest);
     }
 
-    private Tpp.CertificateSearchResponse searchCertificates(List<String> searchRequest) {
-        return tpp.searchCertificates(Strings.join(searchRequest, "&"), apiKey);
+    private Tpp.CertificateSearchResponse searchCertificates(Map<String, String> searchRequest) {
+        return tpp.searchCertificates(searchRequest, apiKey);
     }
 
     @Override
@@ -343,9 +345,9 @@ public class TppConnector implements Connector {
             renewalRequest.PKCS10 = org.bouncycastle.util.Strings.fromByteArray(request.request().csr());
         }
 
-        final CertificateRenewalResponse response = tpp.renewCertificate(renewalRequest, apiKey());
+        final Tpp.CertificateRenewalResponse response = tpp.renewCertificate(renewalRequest, apiKey());
         if(!response.success()) {
-            throw new VCertException(String.format("Certificate renewal error: %s", response.error));
+            throw new VCertException(String.format("Certificate renewal error: %s", response.error()));
         }
 
         return certificateDN;
@@ -471,12 +473,6 @@ public class TppConnector implements Connector {
     class CertificateRenewalRequest {
         private String certificateDN;
         private String PKCS10;
-    }
-
-    @Data
-    class CertificateRenewalResponse {
-        private boolean success;
-        private String error;
     }
 
 }
