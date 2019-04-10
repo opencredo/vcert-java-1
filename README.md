@@ -85,6 +85,7 @@ Acceptance test  are executed with:
 mvn "-Dtest=*AT" test
 ```
 
+
 ## Contributing to VCert
 
 1. Fork it to your account (https://github.com/Venafi/vcert-java/fork)

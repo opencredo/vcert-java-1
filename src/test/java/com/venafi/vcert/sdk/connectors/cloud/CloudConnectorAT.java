@@ -10,6 +10,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.util.Strings;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +27,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static com.venafi.vcert.sdk.TestUtils.getTestIps;
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -106,6 +106,27 @@ class CloudConnectorAT {
                 .dnsNames(Collections.singletonList(InetAddress.getLocalHost().getHostName()))
                 .ipAddresses(getTestIps())
                 .keyType(KeyType.RSA);
+        certificateRequest = classUnderTest.generateRequest(zoneConfiguration, certificateRequest);
+        String certificateId = classUnderTest.requestCertificate(certificateRequest, zone);
+        assertThat(certificateId).isNotNull();
+    }
+
+    @Test
+    void requestCertificate() throws VCertException, SocketException, UnknownHostException {
+        String zone = System.getenv("VENAFI_ZONE");
+        String commonName = System.getenv("VENAFI_CERT_COMMON_NAME");
+        ZoneConfiguration zoneConfiguration = classUnderTest.readZoneConfiguration(zone);
+        CertificateRequest certificateRequest = new CertificateRequest().subject(
+                new CertificateRequest.PKIXName()
+                        .commonName(commonName)
+                        .organization(Collections.singletonList("Venafi, Inc."))
+                        .organizationalUnit(Arrays.asList("Engineering", "Automated Tests"))
+                        .country(Collections.singletonList("US"))
+                        .locality(Collections.singletonList("SLC"))
+                        .province(Collections.singletonList("Utah")))
+                .dnsNames(Collections.singletonList(InetAddress.getLocalHost().getHostName()))
+                .ipAddresses(getTestIps())
+                .keyType(KeyType.RSA);
 
         certificateRequest = classUnderTest.generateRequest(zoneConfiguration, certificateRequest);
         String certificateId = classUnderTest.requestCertificate(certificateRequest, zone);
@@ -146,6 +167,54 @@ class CloudConnectorAT {
         assertThrows(UnsupportedOperationException.class, () -> {
             classUnderTest.revokeCertificate(new RevocationRequest());
         });
+    }
+
+    @Test
+    void renewCertificate() throws VCertException, UnknownHostException, SocketException, CertificateException, NoSuchAlgorithmException {
+        String zone = System.getenv("VENAFI_ZONE");
+        String commonName = System.getenv("VENAFI_CERT_COMMON_NAME");
+        ZoneConfiguration zoneConfiguration = classUnderTest.readZoneConfiguration(zone);
+        CertificateRequest certificateRequest = new CertificateRequest().subject(
+                new CertificateRequest.PKIXName()
+                        .commonName(commonName)
+                        .organization(Collections.singletonList("Venafi, Inc."))
+                        .organizationalUnit(Arrays.asList("Engineering", "Automated Tests"))
+                        .country(Collections.singletonList("US"))
+                        .locality(Collections.singletonList("SLC"))
+                        .province(Collections.singletonList("Utah")))
+                .dnsNames(Collections.singletonList(InetAddress.getLocalHost().getHostName()))
+                .ipAddresses(getTestIps())
+                .keyType(KeyType.RSA);
+
+        certificateRequest = classUnderTest.generateRequest(zoneConfiguration, certificateRequest);
+        String certificateId = classUnderTest.requestCertificate(certificateRequest, zone);
+        assertThat(certificateId).isNotNull();
+
+        certificateRequest.pickupId(certificateId);
+
+        PEMCollection pemCollection = classUnderTest.retrieveCertificate(certificateRequest);
+        X509Certificate cert = (X509Certificate) pemCollection.certificate();
+
+        String thumbprint = DigestUtils.sha1Hex(cert.getEncoded()).toUpperCase();
+
+        CertificateRequest certificateRequestToRenew = new CertificateRequest().subject(
+                new CertificateRequest.PKIXName()
+                        .commonName(commonName)
+                        .organization(Collections.singletonList("Venafi, Inc."))
+                        .organizationalUnit(Arrays.asList("Engineering", "Automated Tests"))
+                        .country(Collections.singletonList("US"))
+                        .locality(Collections.singletonList("SLC"))
+                        .province(Collections.singletonList("Utah")))
+                .dnsNames(Collections.singletonList(InetAddress.getLocalHost().getHostName()))
+                .ipAddresses(getTestIps())
+                .keyType(KeyType.RSA);
+        classUnderTest.generateRequest(zoneConfiguration, certificateRequestToRenew);
+
+        String renewRequestId = classUnderTest.renewCertificate(new RenewalRequest()
+                .request(certificateRequestToRenew)
+                .thumbprint(thumbprint));
+
+        assertThat(renewRequestId).isNotNull();
     }
 
     @Test

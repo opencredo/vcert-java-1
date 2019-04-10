@@ -39,7 +39,6 @@ public class CertificateRequest {
     private Collection<InetAddress> ipAddresses;
     private Collection<AttributeTypeAndValueSET> attributes;
     private SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.UnknownSignatureAlgorithm;
-    private PublicKeyAlgorithm publicKeyAlgorithm = PublicKeyAlgorithm.Unknown;
     private String friendlyName;
     private KeyType keyType = KeyType.defaultKeyType();
     private int keyLength;
