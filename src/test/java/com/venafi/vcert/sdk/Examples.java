@@ -4,7 +4,6 @@ import com.venafi.vcert.sdk.certificate.CertificateRequest;
 import com.venafi.vcert.sdk.certificate.KeyType;
 import com.venafi.vcert.sdk.certificate.PEMCollection;
 import com.venafi.vcert.sdk.certificate.RenewalRequest;
-import com.venafi.vcert.sdk.certificate.RevocationRequest;
 import com.venafi.vcert.sdk.connectors.tpp.ZoneConfiguration;
 import com.venafi.vcert.sdk.endpoint.Authentication;
 import com.venafi.vcert.sdk.endpoint.ConnectorType;
@@ -26,7 +25,7 @@ public class Examples {
         final VCertClient client = new VCertClient(config);
 
         final Authentication auth = Authentication.builder()
-                .apiKey("21420aa2-2f44-4c8b-95d1-fb30b2750877")
+                .apiKey("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
                 .build();
 
         client.authenticate(auth);
@@ -35,7 +34,7 @@ public class Examples {
         // Generate a certificate
         CertificateRequest certificateRequest = new CertificateRequest().subject(
                 new CertificateRequest.PKIXName()
-                        .commonName("opencredo.test")
+                        .commonName("cert.test")
                         .organization(Collections.singletonList("Venafi, Inc."))
                         .organizationalUnit(Arrays.asList("Engineering"))
                         .country(Collections.singletonList("US"))
@@ -60,7 +59,7 @@ public class Examples {
         String thumbprint = DigestUtils.sha1Hex(cert.getEncoded()).toUpperCase();
         final CertificateRequest certificateRequestToRenew = new CertificateRequest().subject(
                 new CertificateRequest.PKIXName()
-                        .commonName("opencredo.test")
+                        .commonName("cert.test")
                         .organization(Collections.singletonList("Venafi, Inc."))
                         .organizationalUnit(Arrays.asList("Engineering"))
                         .country(Collections.singletonList("US"))
