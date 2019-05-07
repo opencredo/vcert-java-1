@@ -26,7 +26,8 @@ public class Examples {
         final VCertClient client = new VCertClient(config);
 
         final Authentication auth = Authentication.builder()
-                .apiKey("21420aa2-2f44-4c8b-95d1-fb30b2750877")
+                .apiKey("xxxxxx-xxxx-xxx-xxxx-xxxxxxxx")
+                .apiKey("xxxxxx-xxxx-xxx-xxxx-xxxxxxxx")
                 .build();
 
         client.authenticate(auth);
@@ -35,7 +36,7 @@ public class Examples {
         // Generate a certificate
         CertificateRequest certificateRequest = new CertificateRequest().subject(
                 new CertificateRequest.PKIXName()
-                        .commonName("opencredo.test")
+                        .commonName("example.test")
                         .organization(Collections.singletonList("Venafi, Inc."))
                         .organizationalUnit(Arrays.asList("Engineering"))
                         .country(Collections.singletonList("US"))
@@ -60,7 +61,7 @@ public class Examples {
         String thumbprint = DigestUtils.sha1Hex(cert.getEncoded()).toUpperCase();
         final CertificateRequest certificateRequestToRenew = new CertificateRequest().subject(
                 new CertificateRequest.PKIXName()
-                        .commonName("opencredo.test")
+                        .commonName("example.test")
                         .organization(Collections.singletonList("Venafi, Inc."))
                         .organizationalUnit(Arrays.asList("Engineering"))
                         .country(Collections.singletonList("US"))
